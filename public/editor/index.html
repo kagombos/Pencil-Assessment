@@ -38,20 +38,24 @@
 	  var app = angular.module("Pencil Assessment", []);
 	  app.controller('testCtrl', function($scope) {
 	    $scope.text = "Welcome!";
-	  });
+	  });  
 	  
 	  var provider = new firebase.auth.GoogleAuthProvider();	
 	  
 	  var editor = new MediumEditor('.editable', {
         buttonLabels: 'fontawesome'
       });
+	  
 	  editor.subscribe('editableInput', function(event, editable) {
 	    console.log(editor.getContent());
 		database.ref('users/' + firebase.auth().currentUser.uid).set({
-		  text: $scope.text
+		  text: editor.getContent()
 		}, function(error) {
 		  if(error) {
 		    console.log(error);
+		  }
+		  else {
+		    console.log("...it worked?");
 		  }
 		});
 	  });
@@ -59,6 +63,10 @@
 	  firebase.auth().onAuthStateChanged(function(newUser) {
 		if (newUser){
 		  console.log("what");
+		  firebase.database().ref('users/' + firebase.auth().currentUser.uid).once('value').then(function(oldText) {
+		    console.log(oldText.val().text);
+			editor.setContent(oldText.val().text);
+		  });
 		}
 		else {
 		  window.location.pathname = ""
