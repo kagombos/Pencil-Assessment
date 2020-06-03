@@ -31,7 +31,6 @@
 	  
 	  firebase.auth().onAuthStateChanged(function(newUser) {
 		if (newUser){
-		  console.log("what");
 		  window.location.pathname = "/editor"
 		}
 		else {

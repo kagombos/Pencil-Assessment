@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <style>
+	  #author{
+	    text-align: center;
+		border-bottom: 1px solid #dbdbdb;
+	  }
+	</style>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Pencil Assessment</title>
@@ -21,57 +27,100 @@
     <script src="/__/firebase/init.js"></script>
 	<script src="./medium-editor/dist/js/medium-editor.js"></script>
 	
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+	<script>
+	  MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+      };
+    </script>
+    <script id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+	
   </head>
   <body>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.9/angular.min.js"></script>
 
-	<div ng-app = "Pencil Assessment" ng-container="testCtrl">
+	<div ng-app = "Pencil Assessment" ng-controller="testCtrl">
 	  <div id="container">
-        <h1>Medium Editor</h1>
+        <h1>Kamil's Pencil Assessment Editor</h1>
+		<h2 id="author" ng-model="userName">{{userName}}'s document</h2>
         <div class="editable" />
       </div>
+	  <button type="button" ng-click="clear()">Clear</button>
 	</div>
 	
     <script>
-	  var database = firebase.database();
-	  
 	  var app = angular.module("Pencil Assessment", []);
-	  app.controller('testCtrl', function($scope) {
-	    $scope.text = "Welcome!";
-	  });  
 	  
 	  var provider = new firebase.auth.GoogleAuthProvider();	
+	  
+	  var database = firebase.database();
 	  
 	  var editor = new MediumEditor('.editable', {
         buttonLabels: 'fontawesome'
       });
 	  
-	  editor.subscribe('editableInput', function(event, editable) {
-	    console.log(editor.getContent());
-		database.ref('users/' + firebase.auth().currentUser.uid).set({
-		  text: editor.getContent()
-		}, function(error) {
-		  if(error) {
-		    console.log(error);
+	  app.controller('testCtrl', ['$scope', '$sce', function($scope, $sce) {
+		
+		$scope.clear = function() {
+		  editor.setContent("");
+		}
+		
+		$scope.typeset = function() {
+		  MathJax.typeset();
+		}
+		
+		var parseText = function(str) {
+		  var latex = false;
+		  for (i = 0; i < str.length; i++) {
+		    if (str.charAt(i) == '$') {
+			  if (latex) {
+				return i;
+			  }
+			  else {
+			    latex = true;
+			  }
+			}
+		  }
+		  return 0;
+		}
+		
+		editor.subscribe('editableInput', function(event, editable) {
+		  var latex = parseText(editor.getContent())
+		  if (latex) {
+		    var len = editor.getContent().length;
+			$scope.typeset();
+		    if (latex >= len - 5) {
+			  editor.setContent(editor.getContent() + "<p><br></p>")
+			}
+		  }
+		  database.ref('users/' + firebase.auth().currentUser.uid).set({
+		    text: editor.getContent()
+		  }, function(error) {
+		    if(error) {
+		      console.log(error);
+		    }
+		  });
+	    });
+		
+		firebase.auth().onAuthStateChanged(function(newUser) {
+		  if (newUser){
+		    $scope.$apply(function() {
+			  $scope.userName = newUser.displayName.split(" ")[0];
+			});
+		    firebase.database().ref('users/' + firebase.auth().currentUser.uid).once('value').then(function(oldText) {
+			  if (oldText.val()) {
+			    editor.setContent(oldText.val().text);			  
+			  }
+			  $scope.typeset();
+			});
 		  }
 		  else {
-		    console.log("...it worked?");
+		    window.location.pathname = ""
 		  }
-		});
-	  });
-	  
-	  firebase.auth().onAuthStateChanged(function(newUser) {
-		if (newUser){
-		  console.log("what");
-		  firebase.database().ref('users/' + firebase.auth().currentUser.uid).once('value').then(function(oldText) {
-		    console.log(oldText.val().text);
-			editor.setContent(oldText.val().text);
-		  });
-		}
-		else {
-		  window.location.pathname = ""
-		}
-	  });
+	    });
+	  }]);
 	  
     </script>
   </body>
