@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pencil Assessment</title>
+	
+	<link rel="stylesheet" href="./medium-editor/demo/css/demo.css">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.css">
+    <link rel="stylesheet" href="./medium-editor/dist/css/medium-editor.css">
+    <link rel="stylesheet" href="./medium-editor/dist/css/themes/default.css" id="medium-editor-theme">
+
+    <!-- update the version number as needed -->
+    <script src="/__/firebase/7.14.6/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script src="/__/firebase/7.14.6/firebase-auth.js"></script>
+    <script src="/__/firebase/7.14.6/firebase-database.js"></script>
+    <script defer src="/__/firebase/7.14.6/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/7.14.6/firebase-storage.js"></script>
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script src="/__/firebase/init.js"></script>
+	<script src="./medium-editor/dist/js/medium-editor.js"></script>
+	
+  </head>
+  <body>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.9/angular.min.js"></script>
+
+	<div ng-app = "Pencil Assessment" ng-container="testCtrl">
+	  <div id="container">
+        <h1>Medium Editor</h1>
+        <div class="editable" />
+      </div>
+	</div>
+	
+    <script>
+	  var database = firebase.database();
+	  
+	  var app = angular.module("Pencil Assessment", []);
+	  app.controller('testCtrl', function($scope) {
+	    $scope.text = "Welcome!";
+	  });
+	  
+	  var provider = new firebase.auth.GoogleAuthProvider();	
+	  
+	  var editor = new MediumEditor('.editable', {
+        buttonLabels: 'fontawesome'
+      });
+	  editor.subscribe('editableInput', function(event, editable) {
+	    console.log(editor.getContent());
+		database.ref('users/' + firebase.auth().currentUser.uid).set({
+		  text: $scope.text
+		}, function(error) {
+		  if(error) {
+		    console.log(error);
+		  }
+		});
+	  });
+	  
+	  firebase.auth().onAuthStateChanged(function(newUser) {
+		if (newUser){
+		  console.log("what");
+		}
+		else {
+		  window.location.pathname = ""
+		}
+	  });
+	  
+    </script>
+  </body>
+</html>

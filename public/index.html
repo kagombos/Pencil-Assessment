@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pencil Assessment</title>
+
+    <!-- update the version number as needed -->
+    <script src="/__/firebase/7.14.6/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script src="/__/firebase/7.14.6/firebase-auth.js"></script>
+    <script defer src="/__/firebase/7.14.6/firebase-database.js"></script>
+    <script defer src="/__/firebase/7.14.6/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/7.14.6/firebase-storage.js"></script>
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script src="/__/firebase/init.js"></script>
+	
+  </head>
+  <body>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.9/angular.min.js"></script>
+
+	<p>Logging in...</p>
+	
+    <script>
+	  var app = angular.module("Pencil Assessment", []);
+	  app.controller('testCtrl', function($scope) {
+	    $scope.login = user;
+	  });
+	  
+	  var provider = new firebase.auth.GoogleAuthProvider();	
+	  
+	  firebase.auth().onAuthStateChanged(function(newUser) {
+		if (newUser){
+		  console.log("what");
+		  window.location.pathname = "/editor"
+		}
+		else {
+		  firebase.auth().signInWithRedirect(provider);
+		}
+	  });
+	  
+    </script>
+  </body>
+</html>
